@@ -1,0 +1,126 @@
+---
+
+# Install 
+
+- name: install required packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ required }}"
+
+# Create directory
+
+- name: Create pxelinux directory
+  file:
+    path: '/home/admin/pxelinux.cfg/'
+    state: directory
+
+- name: Create centos7 directory
+  file:
+    path: '/var/lib/tftpboot/centos7'
+    state: directory
+
+- name: Create dvdrom directory for centos iso
+  file:
+    path: '/mnt/dvdrom'
+    state: directory
+
+- name: Creates pxelinux directory
+  file: 
+    path: '/var/lib/tftpboot/pxelinux.cfg/'
+    state: directory
+
+
+# Check before download centos image
+
+- name: Check that centos iso exists
+  stat:
+    path: /tmp/CentOS-7-x86_64-DVD-1611.iso
+  register: iso_exists
+
+# Download Centos image
+
+- name: Download Centos7 image
+  get_url:
+    url: "http://ftp.agh.edu.pl/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso"
+    dest: "/tmp/"
+  when: iso_exists.stat.exists == False
+
+# Mount ISO
+
+- name: Mount ISO
+  shell: "mount -o loop /tmp/CentOS-7-x86_64-Minimal-1611.iso /mnt/dvdrom"
+#  mount:
+#    name: "/mnt/dvdrom"
+#    src: "/tmp/CentOS-7-x86_64-DVD-1611.iso"
+#    fstype: iso9660
+#    opts: ro
+#    state: present
+
+# Copy cfg files from template
+
+- name: copy dhcp.config
+  template: src=dhcp.conf dest=/etc/dhcp/dhcpd.conf
+
+- name: Pxeserver default config
+  template: src=pxelinux.cfg-default dest=/var/lib/tftpboot/pxelinux.cfg/default
+
+- name: Pxeboot config
+  template: src=pxeboot.conf dest=/etc/httpd/conf.d/pxeboot.conf
+
+- name: Copy TFTP config file
+  copy:
+    src: "files/tftp"
+    dest: "/etc/xinetd.d/tftp"
+    backup: true
+
+
+# Copy multiple files from other system location
+
+- name: Copy PXE boot files
+  copy: remote_src=yes src=/usr/share/syslinux/{{ item }} dest=/var/lib/tftpboot/{{ item }}
+  with_items:
+    - pxelinux.0 
+    - menu.c32
+    - memdisk
+    - mboot.c32
+    - chain.c32
+
+- name: Copy files from Centos DVD
+  command: "cp -a /mnt/{{ item }}/. /var/lib/tftpboot/centos7"
+  with_items:
+   - "dvdrom"
+
+- name: Copy pxe boot files from Centos DVD
+  command: "cp -a /mnt/dvdrom/images/pxeboot/. /var/lib/tftpboot/centos7"
+
+# Change config files
+
+- lineinfile:
+   dest: /etc/sysconfig/selinux
+   regexp: '^SELINUX='
+   line: 'SELINUX=disabled'
+   backup: yes
+
+#- lineinfile:
+#   dest: /etc/xinetd.d/tftp
+#   regexp: '^disable='
+#   line: 'disable=no'
+#   backup: yes
+
+
+# Create link
+
+- name: Create ln -s for boot image
+  file: remote_src=yes src=/var/lib/tftpboot/centos7  dest=/var/www/html/centos7 state=link
+
+# Services
+
+- service:
+    name: "{{ item }}"
+    with_items:
+        - httpd
+        - dhcpd
+        - xinetd
+    state: started
+

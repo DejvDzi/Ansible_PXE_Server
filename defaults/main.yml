@@ -1,0 +1,19 @@
+---
+
+ServerIP: "{{ ansible_default_ipv4.address }}"
+ServerSubnet: "{{ ServerIP.split('.')[0] }}.{{ ServerIP.split('.')[1] }}.{{ ServerIP.split('.')[2] }}.0"
+ServerNetmask: "{{ ansible_default_ipv4.netmask}}"
+ScopeBegin: "50"
+ScopeEnd: "253"
+IpScopeBegin: "{{ ServerIP.split('.')[0] }}.{{ ServerIP.split('.')[1] }}.{{ ServerIP.split('.')[2] }}.{{ ScopeBegin}}"
+IpScopeEnd: "{{ ServerIP.split('.')[0] }}.{{ ServerIP.split('.')[1] }}.{{ ServerIP.split('.')[2] }}.{{ ScopeEnd}}"
+
+# Items installed by task
+
+required: 
+ - syslinux
+ - xinetd
+ - dhcp
+ - httpd
+ - tftp-server
+ - fuseiso
