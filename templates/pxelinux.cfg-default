@@ -6,11 +6,10 @@ ONTIMEOUT local
 menu title PXE MENU
 
 label 1
-menu label ^1) Instaluj CentOS 7
-kernel centos7/images/pxeboot/vmlinuz
-append initrd=centos7/images/pxeboot/initrd.img 
-method=http://{{ ServerIP }}/centos7 devfs=nomount
+MENU LABEL ^1) Instaluj CentOS 7
+KERNEL centos7/images/pxeboot/vmlinuz
+APPEND initrd=/centos7/images/pxeboot/initrd.img  inst.repo=http://{{ ServerIP }}/centos7/ ramdisk_size=512M
 
 label 2
-menu label ^2) HDD BOOT
+MENU LABEL ^2) HDD BOOT
 localboot
