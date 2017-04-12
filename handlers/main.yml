@@ -1,24 +1,28 @@
 ---
 # handlers file for pxeboot
 #
-- name: restart-httpd
+- name: "restart-httpd"
   service:
     name: httpd
     enabled: yes
     state: restarted
 
-- name: restart-dhcpd
+- name: "restart-dhcpd"
   service:
     name: dhcpd
     enabled: yes
     state: restarted
 
 
-- name: restart-xinetd
+- name: "restart-xinetd"
   service:
     name: xinetd
     enabled: yes
     state: restarted
 
- 
+- name: "restart-firewalld"
+  service:
+    name: firewalld
+    enabled: yes
+    state: restarted
 

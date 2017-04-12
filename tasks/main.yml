@@ -35,7 +35,7 @@
 
 - name: Check that centos iso exists
   stat:
-    path: /tmp/CentOS-7-x86_64-DVD-1611.iso
+    path: /tmp/CentOS-7-x86_64-Minimal-1611.iso
   register: iso_exists
 
 # Download Centos image
@@ -62,14 +62,16 @@
 
 - name: copy dhcp.config
   template: src=dhcp.conf dest=/etc/dhcp/dhcpd.conf
-  notify: restart-dhcpd
+  notify:
+    - "restart-dhcpd"
 
 - name: Pxeserver default config
   template: src=pxelinux.cfg-default dest=/var/lib/tftpboot/pxelinux.cfg/default
 
 - name: Pxeboot config
   template: src=pxeboot.conf dest=/etc/httpd/conf.d/pxeboot.conf
-  notify: restart-httpd
+  notify:
+    - "restart-httpd"
 
 - name: Copy TFTP config file
   copy:
@@ -77,17 +79,19 @@
     dest: "/etc/xinetd.d/tftp"
     backup: true
 
+
 # Copy multiple files from other system location
 
 - name: Copy PXE boot files
   copy: remote_src=yes src=/usr/share/syslinux/{{ item }} dest=/var/lib/tftpboot/{{ item }}
   with_items:
-    - pxelinux.0 
+    - pxelinux.0
     - menu.c32
     - memdisk
     - mboot.c32
     - chain.c32
-  notify: restart-xinetd
+  notify:
+    - "restart-xinetd"
 
 - name: Copy files from Centos DVD
   command: "cp -a /mnt/{{ item }}/. /var/lib/tftpboot/centos7"
@@ -96,6 +100,7 @@
 
 - name: Copy pxe boot files from Centos DVD
   command: "cp -a /mnt/dvdrom/images/pxeboot/. /var/lib/tftpboot/centos7"
+
 
 # Change config files
 
@@ -116,4 +121,14 @@
 
 - name: Create ln -s for boot image
   file: remote_src=yes src=/var/lib/tftpboot/centos7  dest=/var/www/html/centos7 state=link
+
+# Allow tcp 80
+
+- firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+  notify:
+    - "restart-firewalld"
+
 
