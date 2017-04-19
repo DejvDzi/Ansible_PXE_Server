@@ -128,7 +128,13 @@
     port: 80/tcp
     permanent: true
     state: enabled
+
+# Allow tftp 69 udp port
+
+- firewalld:
+    port: 69/udp
+    permanent: true
+    state: enabled
   notify:
     - "restart-firewalld"
-
 
