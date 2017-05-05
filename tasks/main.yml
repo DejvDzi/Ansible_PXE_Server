@@ -94,9 +94,7 @@
     - "restart-xinetd"
 
 - name: Copy files from Centos DVD
-  command: "cp -a /mnt/{{ item }}/. /var/lib/tftpboot/centos7"
-  with_items:
-   - "dvdrom"
+  command: "cp -a /mnt/dvdrom/. /var/lib/tftpboot/centos7"
 
 - name: Copy pxe boot files from Centos DVD
   command: "cp -a /mnt/dvdrom/images/pxeboot/. /var/lib/tftpboot/centos7"
@@ -109,13 +107,6 @@
    regexp: '^SELINUX='
    line: 'SELINUX=disabled'
    backup: yes
-
-#- lineinfile:
-#   dest: /etc/xinetd.d/tftp
-#   regexp: '^disable='
-#   line: 'disable=no'
-#   backup: yes
-
 
 # Create link
 
@@ -138,3 +129,7 @@
   notify:
     - "restart-firewalld"
 
+# Umount DVD-ROM
+
+- name: Umount DVD-ROM
+  shell: "umount /mnt/dvdrom"
