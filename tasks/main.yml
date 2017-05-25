@@ -100,13 +100,10 @@
   command: "cp -a /mnt/dvdrom/images/pxeboot/. /var/lib/tftpboot/centos7"
 
 
-# Change config files
+# Disable SELinux 
 
-- lineinfile:
-   dest: /etc/sysconfig/selinux
-   regexp: '^SELINUX='
-   line: 'SELINUX=disabled'
-   backup: yes
+- selinux:
+    state: disabled
 
 # Create link
 
